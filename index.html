@@ -287,15 +287,17 @@
             const task = tasks.find(t => t.id === id);
             if (task) {
                 const wasCompleted = task.completed;
+
+                // Capture position BEFORE re-rendering destroys the element
+                const rect = event.target.getBoundingClientRect();
+                const x = (rect.left + rect.width / 2) / window.innerWidth;
+                const y = (rect.top + rect.height / 2) / window.innerHeight;
+
                 task.completed = !task.completed;
                 renderTasks();
 
                 // Trigger confetti when marking task as done
                 if (!wasCompleted && task.completed) {
-                    const rect = event.target.getBoundingClientRect();
-                    const x = (rect.left + rect.width / 2) / window.innerWidth;
-                    const y = (rect.top + rect.height / 2) / window.innerHeight;
-
                     confetti({
                         particleCount: 50,
                         spread: 60,
