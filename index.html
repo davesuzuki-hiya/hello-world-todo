@@ -228,34 +228,186 @@
             font-size: 0.85rem;
             border: 2px dashed var(--graphite-light);
         }
+
+        /* Login Screen */
+        .login-screen {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 60vh;
+            text-align: center;
+        }
+
+        .login-screen h1 {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .login-screen .tagline {
+            color: var(--text-secondary);
+            font-size: 0.8rem;
+            margin-bottom: 2rem;
+        }
+
+        .login-screen .input-row {
+            margin-bottom: 0;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        /* User header */
+        .user-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            border-bottom: 2px solid var(--graphite-light);
+            padding-bottom: 1rem;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: baseline;
+            gap: 0.5rem;
+        }
+
+        .user-name {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+
+        .switch-btn {
+            font-size: 0.7rem;
+            padding: 0.4rem 0.8rem;
+            background: transparent;
+            border: 1px solid var(--graphite-lighter);
+            color: var(--text-secondary);
+        }
+
+        .switch-btn:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+            background: transparent;
+        }
     </style>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 </head>
 <body>
     <div class="container">
-        <header>
+        <!-- Login Screen -->
+        <div class="login-screen" id="loginScreen">
             <h1>TODO_</h1>
-            <span class="version">v1.0</span>
-        </header>
-
-        <div class="input-row">
-            <input type="text" id="taskInput" placeholder="ENTER TASK_" onkeypress="handleKeyPress(event)">
-            <button onclick="addTask()">ADD</button>
+            <p class="tagline">ENTER YOUR NAME TO START_</p>
+            <div class="input-row">
+                <input type="text" id="nameInput" placeholder="YOUR NAME_" onkeypress="handleLoginKeyPress(event)">
+                <button onclick="login()">START</button>
+            </div>
         </div>
 
-        <ul class="todo-list" id="todoList">
-            <li class="empty-state" id="emptyState">NO TASKS_</li>
-        </ul>
+        <!-- Main App (hidden until login) -->
+        <div id="appContainer" class="hidden">
+            <div class="user-header">
+                <div class="user-info">
+                    <h1>TODO_</h1>
+                    <span class="version">v2.0</span>
+                </div>
+                <div>
+                    <span class="user-name" id="userDisplay"></span>
+                    <button class="switch-btn" onclick="logout()">SWITCH USER</button>
+                </div>
+            </div>
 
-        <div class="status-bar">
-            <span id="taskCount">0 TASKS</span>
-            <span id="completedCount">0 COMPLETED</span>
+            <div class="input-row">
+                <input type="text" id="taskInput" placeholder="ENTER TASK_" onkeypress="handleKeyPress(event)">
+                <button onclick="addTask()">ADD</button>
+            </div>
+
+            <ul class="todo-list" id="todoList">
+                <li class="empty-state" id="emptyState">NO TASKS_</li>
+            </ul>
+
+            <div class="status-bar">
+                <span id="taskCount">0 TASKS</span>
+                <span id="completedCount">0 COMPLETED</span>
+            </div>
         </div>
     </div>
 
     <script>
         let tasks = [];
+        let currentUser = null;
 
+        // ===== User Management =====
+        function handleLoginKeyPress(event) {
+            if (event.key === 'Enter') {
+                login();
+            }
+        }
+
+        function login() {
+            const input = document.getElementById('nameInput');
+            const name = input.value.trim();
+
+            if (name === '') return;
+
+            currentUser = name;
+            localStorage.setItem('todo_user', name);
+            loadTasks();
+            showApp();
+        }
+
+        function logout() {
+            currentUser = null;
+            tasks = [];
+            localStorage.removeItem('todo_user');
+            showLogin();
+        }
+
+        function showLogin() {
+            document.getElementById('loginScreen').classList.remove('hidden');
+            document.getElementById('appContainer').classList.add('hidden');
+            document.getElementById('nameInput').value = '';
+            document.getElementById('nameInput').focus();
+        }
+
+        function showApp() {
+            document.getElementById('loginScreen').classList.add('hidden');
+            document.getElementById('appContainer').classList.remove('hidden');
+            document.getElementById('userDisplay').textContent = currentUser;
+            renderTasks();
+            document.getElementById('taskInput').focus();
+        }
+
+        // ===== Persistence =====
+        function saveTasks() {
+            if (currentUser) {
+                localStorage.setItem('todo_tasks_' + currentUser, JSON.stringify(tasks));
+            }
+        }
+
+        function loadTasks() {
+            if (currentUser) {
+                const saved = localStorage.getItem('todo_tasks_' + currentUser);
+                tasks = saved ? JSON.parse(saved) : [];
+            }
+        }
+
+        // ===== Initialize =====
+        function init() {
+            const savedUser = localStorage.getItem('todo_user');
+            if (savedUser) {
+                currentUser = savedUser;
+                loadTasks();
+                showApp();
+            } else {
+                showLogin();
+            }
+        }
+
+        // ===== Task Functions =====
         function generateId() {
             return Date.now().toString(36) + Math.random().toString(36).substr(2);
         }
@@ -274,6 +426,7 @@
             });
 
             input.value = '';
+            saveTasks();
             renderTasks();
         }
 
@@ -294,6 +447,7 @@
                 const y = (rect.top + rect.height / 2) / window.innerHeight;
 
                 task.completed = !task.completed;
+                saveTasks();
                 renderTasks();
 
                 // Trigger confetti when marking task as done
@@ -313,6 +467,7 @@
 
         function deleteTask(id) {
             tasks = tasks.filter(t => t.id !== id);
+            saveTasks();
             renderTasks();
         }
 
@@ -320,12 +475,12 @@
             const task = tasks.find(t => t.id === id);
             if (task) {
                 task.text = newText;
+                saveTasks();
             }
         }
 
         function renderTasks() {
             const list = document.getElementById('todoList');
-            const emptyState = document.getElementById('emptyState');
 
             if (tasks.length === 0) {
                 list.innerHTML = '<li class="empty-state" id="emptyState">NO TASKS_</li>';
@@ -366,6 +521,9 @@
             const minutes = String(d.getMinutes()).padStart(2, '0');
             return `${month}/${day}/${year} ${hours}:${minutes}`;
         }
+
+        // Start the app
+        init();
     </script>
 </body>
 </html>
