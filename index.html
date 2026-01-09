@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TODO_</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap');
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --graphite-dark: #1a1a1a;
+            --graphite-mid: #2d2d2d;
+            --graphite-light: #3d3d3d;
+            --graphite-lighter: #4a4a4a;
+            --text-primary: #e8e8e8;
+            --text-secondary: #888888;
+            --accent: #ff6b35;
+            --success: #4ecdc4;
+        }
+
+        body {
+            min-height: 100vh;
+            background: var(--graphite-dark);
+            font-family: 'Space Mono', monospace;
+            color: var(--text-primary);
+            padding: 2rem;
+        }
+
+        .container {
+            max-width: 500px;
+            margin: 0 auto;
+        }
+
+        header {
+            display: flex;
+            align-items: baseline;
+            gap: 0.5rem;
+            margin-bottom: 2rem;
+            border-bottom: 2px solid var(--graphite-light);
+            padding-bottom: 1rem;
+        }
+
+        h1 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            letter-spacing: 2px;
+        }
+
+        .version {
+            font-size: 0.7rem;
+            color: var(--text-secondary);
+        }
+
+        .input-row {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 2rem;
+        }
+
+        input[type="text"] {
+            flex: 1;
+            background: var(--graphite-mid);
+            border: 2px solid var(--graphite-light);
+            color: var(--text-primary);
+            font-family: 'Space Mono', monospace;
+            font-size: 0.9rem;
+            padding: 0.8rem 1rem;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        input[type="text"]:focus {
+            border-color: var(--accent);
+        }
+
+        input[type="text"]::placeholder {
+            color: var(--text-secondary);
+        }
+
+        button {
+            background: var(--graphite-light);
+            border: 2px solid var(--graphite-lighter);
+            color: var(--text-primary);
+            font-family: 'Space Mono', monospace;
+            font-size: 0.8rem;
+            font-weight: 700;
+            padding: 0.8rem 1.2rem;
+            cursor: pointer;
+            transition: all 0.15s;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        button:hover {
+            background: var(--accent);
+            border-color: var(--accent);
+            color: var(--graphite-dark);
+        }
+
+        button:active {
+            transform: scale(0.98);
+        }
+
+        .todo-list {
+            list-style: none;
+        }
+
+        .todo-item {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            background: var(--graphite-mid);
+            border: 2px solid var(--graphite-light);
+            padding: 1rem;
+            margin-bottom: 0.5rem;
+            transition: all 0.2s;
+        }
+
+        .todo-item:hover {
+            border-color: var(--graphite-lighter);
+        }
+
+        .todo-item.completed {
+            opacity: 0.5;
+        }
+
+        .todo-item.completed .todo-text {
+            text-decoration: line-through;
+            color: var(--text-secondary);
+        }
+
+        .checkbox {
+            width: 20px;
+            height: 20px;
+            border: 2px solid var(--graphite-lighter);
+            background: transparent;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            transition: all 0.15s;
+        }
+
+        .checkbox:hover {
+            border-color: var(--success);
+        }
+
+        .checkbox.checked {
+            background: var(--success);
+            border-color: var(--success);
+        }
+
+        .checkbox.checked::after {
+            content: '✓';
+            color: var(--graphite-dark);
+            font-size: 0.8rem;
+            font-weight: 700;
+        }
+
+        .todo-text {
+            flex: 1;
+            font-size: 0.9rem;
+            cursor: text;
+            padding: 0.2rem;
+            border: 1px solid transparent;
+            background: transparent;
+            color: var(--text-primary);
+            font-family: 'Space Mono', monospace;
+            outline: none;
+            width: 100%;
+        }
+
+        .todo-text:focus {
+            border-color: var(--accent);
+            background: var(--graphite-dark);
+        }
+
+        .delete-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 1.2rem;
+            padding: 0.2rem 0.5rem;
+            cursor: pointer;
+            transition: color 0.15s;
+        }
+
+        .delete-btn:hover {
+            color: #ff4757;
+            background: transparent;
+        }
+
+        .status-bar {
+            margin-top: 2rem;
+            padding-top: 1rem;
+            border-top: 2px solid var(--graphite-light);
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 3rem;
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            border: 2px dashed var(--graphite-light);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>TODO_</h1>
+            <span class="version">v1.0</span>
+        </header>
+
+        <div class="input-row">
+            <input type="text" id="taskInput" placeholder="ENTER TASK_" onkeypress="handleKeyPress(event)">
+            <button onclick="addTask()">ADD</button>
+        </div>
+
+        <ul class="todo-list" id="todoList">
+            <li class="empty-state" id="emptyState">NO TASKS_</li>
+        </ul>
+
+        <div class="status-bar">
+            <span id="taskCount">0 TASKS</span>
+            <span id="completedCount">0 COMPLETED</span>
+        </div>
+    </div>
+
+    <script>
+        let tasks = [];
+
+        function generateId() {
+            return Date.now().toString(36) + Math.random().toString(36).substr(2);
+        }
+
+        function addTask() {
+            const input = document.getElementById('taskInput');
+            const text = input.value.trim();
+
+            if (text === '') return;
+
+            tasks.push({
+                id: generateId(),
+                text: text,
+                completed: false
+            });
+
+            input.value = '';
+            renderTasks();
+        }
+
+        function handleKeyPress(event) {
+            if (event.key === 'Enter') {
+                addTask();
+            }
+        }
+
+        function toggleTask(id) {
+            const task = tasks.find(t => t.id === id);
+            if (task) {
+                task.completed = !task.completed;
+                renderTasks();
+            }
+        }
+
+        function deleteTask(id) {
+            tasks = tasks.filter(t => t.id !== id);
+            renderTasks();
+        }
+
+        function editTask(id, newText) {
+            const task = tasks.find(t => t.id === id);
+            if (task) {
+                task.text = newText;
+            }
+        }
+
+        function renderTasks() {
+            const list = document.getElementById('todoList');
+            const emptyState = document.getElementById('emptyState');
+
+            if (tasks.length === 0) {
+                list.innerHTML = '<li class="empty-state" id="emptyState">NO TASKS_</li>';
+            } else {
+                list.innerHTML = tasks.map(task => `
+                    <li class="todo-item ${task.completed ? 'completed' : ''}">
+                        <div class="checkbox ${task.completed ? 'checked' : ''}" onclick="toggleTask('${task.id}')"></div>
+                        <input type="text" class="todo-text" value="${escapeHtml(task.text)}"
+                               onchange="editTask('${task.id}', this.value)"
+                               onblur="editTask('${task.id}', this.value)">
+                        <button class="delete-btn" onclick="deleteTask('${task.id}')">×</button>
+                    </li>
+                `).join('');
+            }
+
+            // Update status bar
+            const total = tasks.length;
+            const completed = tasks.filter(t => t.completed).length;
+            document.getElementById('taskCount').textContent = `${total} TASK${total !== 1 ? 'S' : ''}`;
+            document.getElementById('completedCount').textContent = `${completed} COMPLETED`;
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+    </script>
+</body>
+</html>
